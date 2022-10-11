@@ -1,0 +1,25 @@
+- hosts: all
+  tags:
+    - run_docker
+  vars_files:
+    - secrets.yaml
+  tasks:
+    - name: Run metro 2022 bot docker container
+      docker_container:
+        name: metro-2022-bot
+        image: twobrowin/metro-2022-bot:1.0.0
+        state: started
+        detach: yes
+        restart: yes
+        recreate: yes
+        env:
+          BOT_TOKEN: "{{ bot_token }}"
+          SHEETS_ACC_JSON: "{{ sheet_acc_json | string }}"
+
+          SHEETS_NAME: "Таблица бота Метро 2022"
+          SHEET_GROUPS: "Группы"
+          SHEET_INFO: "Таблица информации"
+          SHEET_REPORT: "Сводная таблица кто и что нашёл"
+          SHEET_HELP: "Помощь по боту"
+
+          SHEET_UPDATE_TIMEOUT: "10"
