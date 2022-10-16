@@ -1,35 +1,15 @@
-import asyncio
-from logging import exception
-import gspread
 import pandas as pd
 
-from settings import SheetsSecret, SheetsName, SheetHelp, SheetUpdateTimeout
+from sheet import AbstractSheetAdapter
+
+from settings import SheetHelp
 from log import Log
 
 from groups import Groups
 
-gc = gspread.service_account(filename=SheetsSecret)
-sh = gc.open(SheetsName)
-wks = sh.worksheet(SheetHelp)
-
-class HelpClass():
-    def __init__(self) -> None:
-        self.valid = self._get_help_df()
-        Log.info("Initialized help df")
-        Log.debug(self.valid)
-    
-    async def update(self) -> None:
-        while True:
-            await asyncio.sleep(SheetUpdateTimeout)
-            try:
-                self.valid = self._get_help_df()
-                Log.info("Updated help df")
-                Log.debug(self.valid)
-            except Exception as e:
-                    Log.info("Got an exception", e)
-
-    def _get_help_df(self) -> pd.DataFrame:
-        full_df = pd.DataFrame(wks.get_all_records())
+class HelpClass(AbstractSheetAdapter):
+    def _get_df(self) -> pd.DataFrame:
+        full_df = pd.DataFrame(self.wks.get_all_records())
         valid = full_df.loc[
             (full_df['Администратор'] != '') &
             (full_df['Помощь'] != '')
@@ -45,4 +25,4 @@ class HelpClass():
             )
         return
 
-Help = HelpClass()
+Help = HelpClass(SheetHelp, 'help')

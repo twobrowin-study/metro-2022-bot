@@ -1,32 +1,13 @@
-import asyncio
-import gspread
 import pandas as pd
 
-from settings import SheetsSecret, SheetsName, SheetGroups, SheetUpdateTimeout
+from sheet import AbstractSheetAdapter
+
+from settings import SheetGroups
 from log import Log
 
-gc = gspread.service_account(filename=SheetsSecret)
-sh = gc.open(SheetsName)
-wks = sh.worksheet(SheetGroups)
-
-class GroupsClass():
-    def __init__(self) -> None:
-        self.valid = self._get_groups_df()
-        Log.info("Initialized groups df")
-        Log.debug(self.valid)
-    
-    async def update(self) -> None:
-        while True:
-            await asyncio.sleep(SheetUpdateTimeout)
-            try:
-                self.valid = self._get_groups_df()
-                Log.info("Updated groups df")
-                Log.debug(self.valid)
-            except Exception as e:
-                    Log.info("Got an exception", e)
-
-    def _get_groups_df(self) -> pd.DataFrame:
-        full_df = pd.DataFrame(wks.get_all_records())
+class GroupsClass(AbstractSheetAdapter):
+    def _get_df(self) -> pd.DataFrame:
+        full_df = pd.DataFrame(self.wks.get_all_records())
         valid = full_df.loc[
             (full_df['Id'] != '') &
             (full_df['Обозначение'] != '') &
@@ -73,4 +54,4 @@ class GroupsClass():
     def get_all_normal_groups(self) -> list[str]:
         return self.valid.loc[self.valid['Администратор'] == 'Нет']['Id'].values.tolist()
         
-Groups = GroupsClass()
+Groups = GroupsClass(SheetGroups, 'groups')

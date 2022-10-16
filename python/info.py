@@ -1,38 +1,15 @@
 from telegram import PhotoSize, Animation, Audio, Voice, Video, VideoNote, Location
 
-import asyncio
-import gspread
 import pandas as pd
 
-from settings import SheetsSecret, SheetsName, SheetInfo, SheetUpdateTimeout
+from sheet import AbstractSheetAdapter
+
+from settings import SheetInfo
 from log import Log
 
-gc = gspread.service_account(filename=SheetsSecret)
-sh = gc.open(SheetsName)
-wks = sh.worksheet(SheetInfo)
-
-def next_available_row(worksheet):
-    str_list = list(filter(None, worksheet.col_values(1)))
-    return str(len(str_list)+1)
-
-class InfoClass():
-    def __init__(self) -> None:
-        self.valid = self._get_info_df()
-        Log.info("Initialized info df")
-        Log.debug(self.valid)
-    
-    async def update(self) -> None:
-        while True:
-            await asyncio.sleep(SheetUpdateTimeout)
-            try:
-                self.valid = self._get_info_df()
-                Log.info("Updated info df")
-                Log.debug(self.valid)
-            except Exception as e:
-                    Log.info("Got an exception", e)
-
-    def _get_info_df(self) -> pd.DataFrame:
-        full_df = pd.DataFrame(wks.get_all_records())
+class InfoClass(AbstractSheetAdapter):
+    def _get_df(self) -> pd.DataFrame:
+        full_df = pd.DataFrame(self.wks.get_all_records())
         valid = full_df.loc[
             (full_df['Код'] != '') &
             (
@@ -94,18 +71,18 @@ class InfoClass():
         else:
             self.valid = self.valid.append(tmp_df)
         
-        wks_row = next_available_row(wks)
-        wks.update_cell(wks_row, 1, code)
-        wks.update_cell(wks_row, 2, text_markdown_v2)
-        wks.update_cell(wks_row, 3, photo_stored)
-        wks.update_cell(wks_row, 4, animation_stored)
-        wks.update_cell(wks_row, 5, audio_stored)
-        wks.update_cell(wks_row, 6, voice_stored)
-        wks.update_cell(wks_row, 7, video_stored)
-        wks.update_cell(wks_row, 8, video_note_stored)
-        wks.update_cell(wks_row, 9, location_stored)
+        wks_row = self._next_available_row()
+        self.wks.update_cell(wks_row, 1, code)
+        self.wks.update_cell(wks_row, 2, text_markdown_v2)
+        self.wks.update_cell(wks_row, 3, photo_stored)
+        self.wks.update_cell(wks_row, 4, animation_stored)
+        self.wks.update_cell(wks_row, 5, audio_stored)
+        self.wks.update_cell(wks_row, 6, voice_stored)
+        self.wks.update_cell(wks_row, 7, video_stored)
+        self.wks.update_cell(wks_row, 8, video_note_stored)
+        self.wks.update_cell(wks_row, 9, location_stored)
         
-        Log.info("Wrote to report df")
+        Log.info(f"Wrote to {self.name} df")
         Log.debug(self.valid)
 
-Info = InfoClass()
+Info = InfoClass(SheetInfo, 'info')

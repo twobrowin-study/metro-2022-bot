@@ -1,38 +1,15 @@
-import asyncio
-import gspread
 import pandas as pd
 
-from settings import SheetsSecret, SheetsName, SheetReport, SheetUpdateTimeout
+from sheet import AbstractSheetAdapter
+
+from settings import SheetReport
 from log import Log
 
 from info import Info
 
-gc = gspread.service_account(filename=SheetsSecret)
-sh = gc.open(SheetsName)
-wks = sh.worksheet(SheetReport)
-
-def next_available_row(worksheet):
-    str_list = list(filter(None, worksheet.col_values(1)))
-    return str(len(str_list)+1)
-
-class ReportClass():
-    def __init__(self) -> None:
-        self.valid = self._get_report_df()
-        Log.info("Initialized report df")
-        Log.debug(self.valid)
-    
-    async def update(self) -> None:
-        while True:
-            await asyncio.sleep(SheetUpdateTimeout)
-            try:
-                self.valid = self._get_report_df()
-                Log.info("Updated report df")
-                Log.debug(self.valid)
-            except Exception as e:
-                    Log.info("Got an exception", e)
-
-    def _get_report_df(self) -> pd.DataFrame:
-        full_df = pd.DataFrame(wks.get_all_records())
+class ReportClass(AbstractSheetAdapter):
+    def _get_df(self) -> pd.DataFrame:
+        full_df = pd.DataFrame(self.wks.get_all_records())
         if full_df.empty:
             return full_df
         valid = full_df.loc[
@@ -60,9 +37,9 @@ class ReportClass():
         else:
             self.valid = self.valid.append(tmp_df)
         
-        wks_row = next_available_row(wks)
-        wks.update_cell(wks_row, 1, group)
-        wks.update_cell(wks_row, 2, code)
+        wks_row = self._next_available_row()
+        self.wks.update_cell(wks_row, 1, group)
+        self.wks.update_cell(wks_row, 2, code)
         
         Log.info("Wrote to report df")
         Log.debug(self.valid)
@@ -81,4 +58,4 @@ class ReportClass():
             ans += [f"Группа {group_name} - найдены коды:\n{group_codes}"]
         return "\n".join(ans)
 
-Report = ReportClass()
+Report = ReportClass(SheetReport, 'report')
