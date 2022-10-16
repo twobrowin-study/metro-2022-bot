@@ -1,4 +1,5 @@
 import asyncio
+from logging import exception
 import gspread
 import pandas as pd
 
@@ -20,9 +21,12 @@ class HelpClass():
     async def update(self) -> None:
         while True:
             await asyncio.sleep(SheetUpdateTimeout)
-            self.valid = self._get_help_df()
-            Log.info("Updated help df")
-            Log.debug(self.valid)
+            try:
+                self.valid = self._get_help_df()
+                Log.info("Updated help df")
+                Log.debug(self.valid)
+            except Exception as e:
+                    Log.info("Got an exception", e)
 
     def _get_help_df(self) -> pd.DataFrame:
         full_df = pd.DataFrame(wks.get_all_records())

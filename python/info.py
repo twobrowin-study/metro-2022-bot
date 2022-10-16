@@ -24,9 +24,12 @@ class InfoClass():
     async def update(self) -> None:
         while True:
             await asyncio.sleep(SheetUpdateTimeout)
-            self.valid = self._get_info_df()
-            Log.info("Updated info df")
-            Log.debug(self.valid)
+            try:
+                self.valid = self._get_info_df()
+                Log.info("Updated info df")
+                Log.debug(self.valid)
+            except Exception as e:
+                    Log.info("Got an exception", e)
 
     def _get_info_df(self) -> pd.DataFrame:
         full_df = pd.DataFrame(wks.get_all_records())
