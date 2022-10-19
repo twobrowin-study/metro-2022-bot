@@ -2,6 +2,8 @@ import asyncio
 import gspread
 import pandas as pd
 
+from telegram.ext import Application
+
 from settings import SheetsSecret, SheetsName, SheetUpdateTimeout
 from log import Log
 
@@ -16,15 +18,12 @@ class AbstractSheetAdapter():
         Log.info(f"Initialized {self.name} df")
         Log.debug(self.valid)
     
-    async def update(self) -> None:
-        while True:
-            await asyncio.sleep(SheetUpdateTimeout)
-            try:
-                self.valid = self._get_df()
-                Log.info(f"Updated {self.name} df")
-                Log.debug(self.valid)
-            except Exception as e:
-                Log.warn(f"Got an exeption while updating {self.name} df", e)
+    async def update(self, app: Application) -> None:
+        await asyncio.sleep(SheetUpdateTimeout)
+        app.create_task(self.update(app))
+        self.valid = self._get_df()
+        Log.info(f"Updated {self.name} df")
+        Log.debug(self.valid)
 
     def _get_df(self) -> pd.DataFrame:
         pass

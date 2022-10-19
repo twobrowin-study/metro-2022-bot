@@ -1,5 +1,9 @@
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, MessageHandler, ChatMemberHandler
 
+import asyncio
+
+from settings import SheetUpdateTimeout
+
 from settings import BotToken
 from log import Log
 
@@ -34,10 +38,10 @@ from info import Info
 from report import Report
 
 async def post_init(application: Application) -> None:
-    application.create_task(Help.update())
-    application.create_task(Groups.update())
-    application.create_task(Info.update())
-    application.create_task(Report.update())
+    application.create_task(Help.update(application))
+    application.create_task(Groups.update(application))
+    application.create_task(Info.update(application))
+    application.create_task(Report.update(application))
 
 if __name__ == '__main__':
     Log.info("Starting...")
