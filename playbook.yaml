@@ -13,6 +13,8 @@
         restart: yes
         recreate: yes
         env:
+          TZ: "Europe/Moscow"
+          
           BOT_TOKEN: "{{ bot_token }}"
           SHEETS_ACC_JSON: "{{ sheet_acc_json | string }}"
 
