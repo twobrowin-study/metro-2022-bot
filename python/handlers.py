@@ -4,15 +4,19 @@ from telegram.constants import MessageEntityType
 
 from telegram import PhotoSize, Animation, Audio, Voice, Video, VideoNote
 
+from telegram.constants import ParseMode
+
 import json
 
 from log import Log
 from help import Help
 from info import Info
 from groups import Groups
-from report import Report
+from pivot import Pivot
 
 from state import State
+
+from info import LAST_CODE
 
 async def ChatJoinHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"I've join chat {update.effective_chat.id}")
@@ -24,13 +28,13 @@ async def HelpHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     Log.debug(f"Got help request from chat {chat_id} as group {group_letter}")
     await update.message.reply_markdown(Help.get_help(admin_status, group_letter))
 
-async def ReportHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def PivotHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for entity in update.message.entities:
         if entity.type == MessageEntityType.BOT_COMMAND:
             command = update.message.parse_entity(entity)[1:].split('@')[0]
-            normal_group_name = Groups.get_normal_group_name_by_report_command(command)
-            Log.debug(f"Got report request from with command {command} - as normal group {normal_group_name}")
-            await update.message.reply_markdown(Report.get_report_md(normal_group_name))
+            normal_group_name = Groups.get_normal_group_name_by_pivot_command(command)
+            Log.debug(f"Got pivot request from with command {command} - as normal group {normal_group_name}")
+            await update.message.reply_markdown(Pivot.get_pivot_md(normal_group_name))
 
 async def InfoHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
@@ -38,7 +42,17 @@ async def InfoHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     group_letter = Groups.get_group_letter_by_id(chat_id)
     
     Log.debug(f"Got info request from chat {chat_id} as group {group_letter} with code {code}")
-    
+    await reply_to_code(update, code)
+    Pivot.write_founded_code(group_letter, code, context.application)
+
+    if Pivot.group_found_all_codes_but_last(group_letter):
+        Log.debug(f"Chat {chat_id} as group {group_letter} founded the last code! Congrats!")
+        await reply_to_code(update, LAST_CODE)
+        for admin_id in Groups.get_all_admin_groups():
+            await context.application.bot.send_message(admin_id, f"Группа *{group_letter}* нашла все коды!", parse_mode=ParseMode.MARKDOWN)
+        Pivot.write_founded_code(group_letter, LAST_CODE, context.application)
+
+async def reply_to_code(update: Update, code: str) -> None:
     info = Info.get_info_dy_code(code)
 
     if info['Текстовая информация'] != "":
@@ -77,8 +91,6 @@ async def InfoHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if info['Геолокация'] != "":
         json_tmp = json.loads(info['Геолокация'])
         await update.message.reply_location(json_tmp['latitude'], json_tmp['longitude'])
-    
-    context.application.create_task(Report.write_founded_code(group_letter, code))
 
 async def CancelHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     State['notify'] = False
@@ -141,3 +153,6 @@ async def AddEndHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         update.message.video_note,
         update.message.location,
     ))
+
+async def AllHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_markdown(Info.get_all_codes_md())

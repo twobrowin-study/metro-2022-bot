@@ -9,7 +9,7 @@ from log import Log
 
 from handlers import ChatJoinHandler
 from handlers import HelpHandler
-from handlers import ReportHandler
+from handlers import PivotHandler
 from handlers import InfoHandler
 
 from handlers import CancelHandler
@@ -20,6 +20,8 @@ from handlers import NotifyEndHandler
 from handlers import AddStartHandler
 from handlers import AddMidleHandler
 from handlers import AddEndHandler
+
+from handlers import AllHandler
 
 from filters import GroupRegisteredFilter
 from filters import GroupIsAdminFilter
@@ -35,13 +37,13 @@ from filters import AddEndFilter
 from help import Help
 from groups import Groups
 from info import Info
-from report import Report
+from pivot import Pivot
 
 async def post_init(application: Application) -> None:
     application.create_task(Help.update(application))
     application.create_task(Groups.update(application))
     application.create_task(Info.update(application))
-    application.create_task(Report.update(application))
+    application.create_task(Pivot.update(application))
 
 if __name__ == '__main__':
     Log.info("Starting...")
@@ -61,8 +63,10 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(AddMidleFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddMidleHandler))
     app.add_handler(MessageHandler(AddEndFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddEndHandler))
     
-    for report_command in Groups.get_all_report_commands():
-        app.add_handler(CommandHandler(report_command, ReportHandler, filters = GroupRegisteredFilter & GroupIsAdminFilter))
+    app.add_handler(CommandHandler("all", AllHandler, filters = GroupRegisteredFilter & GroupIsAdminFilter))
+    
+    for pivot_command in Groups.get_all_pivot_commands():
+        app.add_handler(CommandHandler(pivot_command, PivotHandler, filters = GroupRegisteredFilter & GroupIsAdminFilter))
 
     app.run_polling()
     Log.info("Done. Goodby!")

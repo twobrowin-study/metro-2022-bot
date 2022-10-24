@@ -3,7 +3,7 @@ from telegram.ext.filters import MessageFilter
 
 from groups import Groups
 from info import Info
-from report import Report
+from pivot import Pivot
 
 from state import State
 
@@ -24,12 +24,12 @@ class InfoKeySolvedClass(MessageFilter):
         if admin_status == 'Да':
             return False
         
-        code_exists = Info.check_if_code_exists(code)
+        code_exists = Info.check_if_code_exists_but_not_last(code)
         if code_exists == False:
             return False
         
         group_letter = Groups.get_group_letter_by_id(chat_id)
-        return Report.check_if_group_did_not_get_code(group_letter, code)
+        return Pivot.check_if_group_did_not_get_code(group_letter, code)
 
 class NotifyStartClass(MessageFilter):
     def filter(self, message: Message) -> bool:

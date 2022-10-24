@@ -20,8 +20,8 @@ class HelpClass(AbstractSheetAdapter):
         for _, row in self.valid.loc[self.valid['Администратор'] == admin_status].iterrows():
             return row['Помощь'].format(
                 group_letter = group_letter,
-                admin_report = Groups.get_admin_report(),
-                groups_reports = "".join([ f"  - /{x[0]} группа {x[1]}\n" for x in zip(Groups.get_groups_reports(), Groups.get_groups_names()) ])
+                admin_pivot = Groups.get_admin_pivot(),
+                groups_pivots = "".join([ f"  - /{x[0]} группа {x[1]}\n" for x in zip(Groups.get_groups_pivots(), Groups.get_groups_names()) ])
             )
         return
 

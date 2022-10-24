@@ -5,7 +5,7 @@ SHEETS_ACC_JSON=''
 SHEETS_NAME='Таблица бота Метро 2022'
 SHEET_GROUPS='Группы'
 SHEET_INFO='Таблица информации'
-SHEET_REPORT='Сводная таблица кто и что нашёл'
+SHEET_PIVOT='Сводная таблица кто и что нашёл'
 SHEET_HELP='Помощь по боту'
 
 SHEET_UPDATE_TIMEOUT='10'

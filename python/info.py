@@ -7,6 +7,8 @@ from sheet import AbstractSheetAdapter
 from settings import SheetInfo
 from log import Log
 
+LAST_CODE = 'last'
+
 class InfoClass(AbstractSheetAdapter):
     def _get_df(self) -> pd.DataFrame:
         full_df = pd.DataFrame(self.wks.get_all_records())
@@ -32,9 +34,23 @@ class InfoClass(AbstractSheetAdapter):
 
     def check_if_code_exists(self, code: str) -> bool:
         return not self.valid.loc[self.valid['Код'] == code].empty
+
+    def check_if_code_exists_but_not_last(self, code: str) -> bool:
+        return code != LAST_CODE and self.check_if_code_exists(code)
     
     def get_maped_df(self) -> pd.Series:
         return self.valid.reset_index().set_index('Код')['index']
+    
+    def get_all_codes(self) -> list[str]:
+        return self.valid['Код'].to_list()
+    
+    def get_all_codes_but_last(self) -> list[str]:
+        return self.valid[self.valid['Код'] != LAST_CODE]['Код'].to_list()
+    
+    def get_all_codes_md(self) -> str:
+        ans = "Все коды:\n"
+        ans += "".join([ f"  - {x} \n" for x in self.get_all_codes()])
+        return ans
 
     async def write_new_info(self, code: str,
         text_markdown_v2: str,

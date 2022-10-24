@@ -15,7 +15,7 @@ SheetsName = getenv('SHEETS_NAME', 'Таблица бота Метро 2022')
 
 SheetGroups = getenv('SHEET_GROUPS', 'Группы')
 SheetInfo = getenv('SHEET_INFO', 'Таблица информации')
-SheetReport = getenv('SHEET_REPORT', 'Сводная таблица кто и что нашёл')
+SheetPivot = getenv('SHEET_PIVOT', 'Сводная таблица кто и что нашёл')
 SheetHelp = getenv('SHEET_HELP', 'Помощь по боту')
 
 SheetUpdateTimeout = int(getenv('SHEET_UPDATE_TIMEOUT', '10'))
