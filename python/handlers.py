@@ -42,17 +42,17 @@ async def InfoHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     group_letter = Groups.get_group_letter_by_id(chat_id)
     
     Log.debug(f"Got info request from chat {chat_id} as group {group_letter} with code {code}")
-    await reply_to_code(update, code)
+    await reply_to_code(update, context, code)
     Pivot.write_founded_code(group_letter, code, context.application)
 
     if Pivot.group_found_all_codes_but_last(group_letter):
         Log.debug(f"Chat {chat_id} as group {group_letter} founded the last code! Congrats!")
-        await reply_to_code(update, LAST_CODE)
+        await reply_to_code(update, context, LAST_CODE)
         for admin_id in Groups.get_all_admin_groups():
-            await context.application.bot.send_message(admin_id, f"Группа *{group_letter}* нашла все коды!", parse_mode=ParseMode.MARKDOWN)
+            await context.bot.send_message(admin_id, f"Группа *{group_letter}* нашла все коды!", parse_mode=ParseMode.MARKDOWN)
         Pivot.write_founded_code(group_letter, LAST_CODE, context.application)
 
-async def reply_to_code(update: Update, code: str) -> None:
+async def reply_to_code(update: Update, context: ContextTypes.DEFAULT_TYPE, code: str) -> None:
     info = Info.get_info_dy_code(code)
 
     if info['Текстовая информация'] != "":
