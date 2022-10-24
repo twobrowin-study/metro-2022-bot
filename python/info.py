@@ -12,6 +12,8 @@ LAST_CODE = 'last'
 class InfoClass(AbstractSheetAdapter):
     def _get_df(self) -> pd.DataFrame:
         full_df = pd.DataFrame(self.wks.get_all_records())
+        if full_df.empty:
+            return full_df
         valid = full_df.loc[
             (full_df['Код'] != '') &
             (
@@ -42,12 +44,18 @@ class InfoClass(AbstractSheetAdapter):
         return self.valid.reset_index().set_index('Код')['index']
     
     def get_all_codes(self) -> list[str]:
+        if self.valid.empty:
+            return []
         return self.valid['Код'].to_list()
     
     def get_all_codes_but_last(self) -> list[str]:
+        if self.valid.empty:
+            return []
         return self.valid[self.valid['Код'] != LAST_CODE]['Код'].to_list()
     
     def get_all_codes_md(self) -> str:
+        if self.valid.empty:
+            return "Коды ещё не добавлены"
         ans = "Все коды:\n"
         ans += "".join([ f"  - {x} \n" for x in self.get_all_codes()])
         return ans

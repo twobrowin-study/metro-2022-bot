@@ -7,7 +7,7 @@
     - name: Run metro 2022 bot docker container
       docker_container:
         name: metro-2022-bot
-        image: twobrowin/metro-2022-bot:1.4.3
+        image: twobrowin/metro-2022-bot:1.4.4
         state: started
         detach: yes
         restart: yes
