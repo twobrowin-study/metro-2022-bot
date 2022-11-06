@@ -1,6 +1,8 @@
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from telegram.constants import MessageEntityType
+
+import pandas as pd
 
 from telegram import PhotoSize, Animation, Audio, Voice, Video, VideoNote
 
@@ -42,19 +44,19 @@ async def InfoHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     group_letter = Groups.get_group_letter_by_id(chat_id)
     
     Log.debug(f"Got info request from chat {chat_id} as group {group_letter} with code {code}")
-    await reply_to_code(update, context, code)
-    Pivot.write_founded_code(group_letter, code, context.application)
-
-    if Pivot.group_found_all_codes_but_last(group_letter):
-        Log.debug(f"Chat {chat_id} as group {group_letter} founded the last code! Congrats!")
-        await reply_to_code(update, context, LAST_CODE)
-        for admin_id in Groups.get_all_admin_groups():
-            await context.bot.send_message(admin_id, f"Группа *{group_letter}* нашла все коды!", parse_mode=ParseMode.MARKDOWN)
-        Pivot.write_founded_code(group_letter, LAST_CODE, context.application)
-
-async def reply_to_code(update: Update, context: ContextTypes.DEFAULT_TYPE, code: str) -> None:
     info = Info.get_info_dy_code(code)
+    team = info['Команда']
+    await reply_to_code(update, context, info)
+    Pivot.write_founded_code(group_letter, code, team, context.application)
 
+    if Pivot.group_found_all_codes_but_last(group_letter, team):
+        Log.debug(f"Chat {chat_id} as group {group_letter} founded the last code for team {team}! Congrats!")
+        await reply_to_code(update, context, Info.get_info_dy_code(LAST_CODE, team=team))
+        for admin_id in Groups.get_all_admin_groups():
+            await context.bot.send_message(admin_id, f"Группа *{group_letter}* нашла все коды команды *{team}*!", parse_mode=ParseMode.MARKDOWN)
+        Pivot.write_founded_code(group_letter, LAST_CODE, team, context.application)
+
+async def reply_to_code(update: Update, context: ContextTypes.DEFAULT_TYPE, info: pd.Series) -> None:
     if info['Текстовая информация'] != "":
         await update.message.reply_markdown_v2(info['Текстовая информация'])
 
@@ -94,7 +96,7 @@ async def reply_to_code(update: Update, context: ContextTypes.DEFAULT_TYPE, code
 
 async def CancelHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     State['notify'] = False
-    State['add'] = (False, False)
+    State['add'] = 'start'
     Log.debug(f"Cancel last operation")
     await update.message.reply_markdown("Все операции отменены")
 
@@ -112,39 +114,55 @@ async def NotifyEndHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await update.message.reply_markdown("Оповещение отправлено")
 
 async def AddStartHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    State['add'] = (True, False)
+    State['add'] = 'code'
     Log.debug(f"Start add")
-    await update.message.reply_markdown("Введите код загадки - любой текст")
+    await update.message.reply_markdown("Введите код загадки - текст без пробелов")
 
-async def AddMidleHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message.text == "" or update.message.text == None:
-        await update.message.reply_markdown("Не получен код - повторите")
+async def AddCodeHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message.text == "" or update.message.text == None or " " in update.message.text:
+        await update.message.reply_markdown("Код некорректен - повторите")
         return
-    State['add'] = (True, True)
+    State['add'] = 'team'
     State['add_code'] = update.message.text
     Log.debug(f"Saved add code {State['add_code']}")
+    await update.message.reply_markdown("Введите номер команды для загадки - цифра `1`, `2` или `3`",
+        reply_markup=ReplyKeyboardMarkup([["1", "2", "3"]])
+    )
+
+async def AddTeamHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message.text == "" or update.message.text == None or update.message.text not in ['1', '2', '3']:
+        await update.message.reply_markdown("Не получен код - повторите")
+        return
+    State['add'] = 'data'
+    State['add_team'] = update.message.text
+    Log.debug(f"Saved add team {State['add_team']}")
     await update.message.reply_markdown("""
 Теперь перешлите информацию - одно из:
   - текст - будет сохранён с форматированием
-  - фото - будет сохранено без подписи
+  - фото
   - анимация
   - аудиофайл
   - голосовое сообщение
   - видеофайл
   - круглешок
   - геолокация
-""")
+  - документ - только один
+""", reply_markup=ReplyKeyboardRemove())
 
-async def AddEndHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    State['add'] = (False, False)
+async def AddDataHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    State['add'] = 'start'
     code = State['add_code']
+    team = State['add_team']
 
-    Log.debug(f"Add ended and saved with code {code}")
+    Log.debug(f"Add ended and saved with code {code} for team {team}")
     await update.message.reply_markdown("Загадка добавлена")
     
+    text = update.message.text_markdown_v2
+    caption = update.message.caption_markdown_v2
+
     context.application.create_task(Info.write_new_info(
-        code,
-        update.message.text_markdown_v2,
+        code, team,
+        text if text != None else caption,
         update.message.photo,
         update.message.animation,
         update.message.audio,
@@ -152,6 +170,7 @@ async def AddEndHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         update.message.video,
         update.message.video_note,
         update.message.location,
+        update.message.document,
     ))
 
 async def AllHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

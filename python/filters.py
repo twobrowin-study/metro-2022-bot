@@ -41,15 +41,19 @@ class NotifyEndClass(MessageFilter):
 
 class AddStartClass(MessageFilter):
     def filter(self, message: Message) -> bool:
-        return State['add'] == (False, False)
+        return State['add'] == 'start'
 
-class AddMidleClass(MessageFilter):
+class AddCodeClass(MessageFilter):
     def filter(self, message: Message) -> bool:
-        return State['add'] == (True, False)
+        return State['add'] == 'code'
 
-class AddEndClass(MessageFilter):
+class AddTeamClass(MessageFilter):
     def filter(self, message: Message) -> bool:
-        return State['add'] == (True, True)
+        return State['add'] == 'team'
+
+class AddDataClass(MessageFilter):
+    def filter(self, message: Message) -> bool:
+        return State['add'] == 'data'
 
 GroupRegisteredFilter = GroupRegisteredClass()
 GroupIsAdminFilter = GroupIsAdminClass()
@@ -59,5 +63,6 @@ NotifyStartFilter = NotifyStartClass()
 NotifyEndFilter = NotifyEndClass()
 
 AddStartFilter = AddStartClass()
-AddMidleFilter = AddMidleClass()
-AddEndFilter = AddEndClass()
+AddCodeFilter = AddCodeClass()
+AddTeamFilter = AddTeamClass()
+AddDataFilter = AddDataClass()

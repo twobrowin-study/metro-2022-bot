@@ -1,5 +1,6 @@
 State = {
     "notify": False,
-    "add": (False, False),
-    "add_code": ""
+    "add": 'start',
+    "add_code": "",
+    "add_team": "",
 }

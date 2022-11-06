@@ -18,8 +18,9 @@ from handlers import NotifyStartHandler
 from handlers import NotifyEndHandler
 
 from handlers import AddStartHandler
-from handlers import AddMidleHandler
-from handlers import AddEndHandler
+from handlers import AddCodeHandler
+from handlers import AddTeamHandler
+from handlers import AddDataHandler
 
 from handlers import AllHandler
 
@@ -31,8 +32,9 @@ from filters import NotifyStartFilter
 from filters import NotifyEndFilter
 
 from filters import AddStartFilter
-from filters import AddMidleFilter
-from filters import AddEndFilter
+from filters import AddCodeFilter
+from filters import AddTeamFilter
+from filters import AddDataFilter
 
 from help import Help
 from groups import Groups
@@ -60,8 +62,9 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(NotifyEndFilter & GroupRegisteredFilter & GroupIsAdminFilter, NotifyEndHandler))
 
     app.add_handler(CommandHandler("add", AddStartHandler, filters = AddStartFilter & GroupRegisteredFilter & GroupIsAdminFilter))
-    app.add_handler(MessageHandler(AddMidleFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddMidleHandler))
-    app.add_handler(MessageHandler(AddEndFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddEndHandler))
+    app.add_handler(MessageHandler(AddCodeFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddCodeHandler))
+    app.add_handler(MessageHandler(AddTeamFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddTeamHandler))
+    app.add_handler(MessageHandler(AddDataFilter & GroupRegisteredFilter & GroupIsAdminFilter, AddDataHandler))
     
     app.add_handler(CommandHandler("all", AllHandler, filters = GroupRegisteredFilter & GroupIsAdminFilter))
     
