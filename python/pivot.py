@@ -19,6 +19,8 @@ class PivotClass(AbstractSheetAdapter):
             (full_df['Код информации'] != '') &
             (full_df['Команда'] != '')
         ]
+        for str_name in ['Код информации', 'Команда']:
+            valid[str_name] = valid[str_name].apply(str)
         return valid
 
     def check_if_group_did_not_get_code(self, group: str, code: str) -> bool:

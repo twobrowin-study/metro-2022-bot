@@ -29,6 +29,8 @@ class InfoClass(AbstractSheetAdapter):
                 (full_df['Документ'] != '')
             )
         ]
+        for str_name in ['Код', 'Команда', 'Текстовая информация']:
+            valid[str_name] = valid[str_name].apply(str)
         return valid
         
     def get_info_dy_code(self, code: str, team: str = None) -> pd.Series:
