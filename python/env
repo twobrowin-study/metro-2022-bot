@@ -8,4 +8,4 @@ SHEET_INFO='Таблица информации'
 SHEET_PIVOT='Сводная таблица кто и что нашёл'
 SHEET_HELP='Помощь по боту'
 
-SHEET_UPDATE_TIMEOUT='10'
+SHEET_UPDATE_TIMEOUT='3600'

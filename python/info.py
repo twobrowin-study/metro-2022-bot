@@ -52,7 +52,9 @@ class InfoClass(AbstractSheetAdapter):
         return code != LAST_CODE and self.check_if_code_exists(code)
     
     def get_maped_df(self) -> pd.Series:
-        return self.valid.reset_index().set_index('Код')['index']
+        tmp_df = self.valid.copy()
+        tmp_df['Код команда'] = tmp_df.apply(lambda x: f"`{x['Код']}` - команда *{x['Команда']}*", axis=1)
+        return tmp_df.reset_index().set_index('Код команда')['index']
     
     def get_all_codes(self) -> pd.DataFrame:
         if self.valid.empty:

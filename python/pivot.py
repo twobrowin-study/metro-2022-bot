@@ -59,11 +59,13 @@ class PivotClass(AbstractSheetAdapter):
             if group == None:
                 return "Коды не найдены ни одной из групп"
             return f"Группа {group} - коды не найдены"
+        
+        pivot_df['Код команда'] = pivot_df.apply(lambda x: f"`{x['Код информации']}` - команда *{x['Команда']}*", axis=1)
 
-        pivot_df['code_num'] = pivot_df['Код информации'].map(Info.get_maped_df())
+        pivot_df['code_num'] = pivot_df['Код команда'].map(Info.get_maped_df())
         ans = []
         for group_name, grouped in pivot_df.sort_values('code_num').groupby('Обозначение группы'):
-            group_codes = "".join([ f"  - {x} \n" for x in grouped['Код информации']])
+            group_codes = "".join([ f"  - {x} \n" for x in grouped['Код команда']])
             ans += [f"Группа {group_name} - найдены коды:\n{group_codes}"]
         return "\n".join(ans)
     
