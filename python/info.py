@@ -31,6 +31,7 @@ class InfoClass(AbstractSheetAdapter):
         ]
         for str_name in ['Код', 'Команда', 'Текстовая информация']:
             valid[str_name] = valid[str_name].apply(str)
+        valid['Код'] = valid['Код'].apply(lambda x: '000017' if x == '17' else x)
         return valid
         
     def get_info_dy_code(self, code: str, team: str = None) -> pd.Series:

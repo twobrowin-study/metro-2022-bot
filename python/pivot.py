@@ -21,6 +21,7 @@ class PivotClass(AbstractSheetAdapter):
         ]
         for str_name in ['Код информации', 'Команда']:
             valid[str_name] = valid[str_name].apply(str)
+        valid['Код информации'] = valid['Код информации'].apply(lambda x: '000017' if x == '17' else x)
         return valid
 
     def check_if_group_did_not_get_code(self, group: str, code: str) -> bool:

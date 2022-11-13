@@ -7,7 +7,7 @@
     - name: Run metro 2022 bot docker container
       docker_container:
         name: metro-2022-bot
-        image: twobrowin/metro-2022-bot:1.5.2
+        image: twobrowin/metro-2022-bot:1.5.2-seventeen-err-hotfix.01
         state: started
         detach: yes
         restart: yes
@@ -24,4 +24,4 @@
           SHEET_PIVOT: "Сводная таблица кто и что нашёл"
           SHEET_HELP: "Помощь по боту"
 
-          SHEET_UPDATE_TIMEOUT: "18000"
+          SHEET_UPDATE_TIMEOUT: "86400"
